@@ -60,10 +60,11 @@ Answer:
     print(response.content)
     print("\n==========================================\n")
 
-    return response.content
+    return response.content, documents
 
 
 if __name__ == "__main__":
     question = "What documents are required for a personal loan?"
-    answer = ask(question)
+    answer, documents = ask(question)
+
     print(answer)
