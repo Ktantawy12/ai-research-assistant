@@ -1,6 +1,6 @@
 import streamlit as st
 
-from src.rag.chain import ask
+from src.graph.graph import graph
 from src.vectordb.chroma_db import load_vector_store
 
 
@@ -9,8 +9,8 @@ from src.vectordb.chroma_db import load_vector_store
 # =====================================================
 
 st.set_page_config(
-    page_title="AI Financial Advisor",
-    page_icon="💰",
+    page_title="Research AI Assistant",
+    page_icon="🤖",
     layout="wide",
 )
 
@@ -50,34 +50,12 @@ if "welcome_shown" not in st.session_state:
 
 with st.sidebar:
 
-    st.title("💰 AI Financial Advisor")
-
-    st.success("🟢 System Ready")
-
-    st.subheader("System Status")
-
-    st.write("✅ OpenAI Connected")
-    st.write("✅ ChromaDB Loaded")
-    st.write("✅ Documents Indexed")
+    st.title("🤖 Research AI Assistant")
 
     st.divider()
-
-    st.subheader("Statistics")
 
     st.write(f"📄 Documents: {num_documents}")
-    st.write(f"🧠 Model: GPT-4.1")
-
-    st.divider()
-
-    st.info(
-        """
-This assistant answers questions using
-Retrieval-Augmented Generation (RAG).
-
-Responses are grounded in the indexed
-financial documents.
-"""
-    )
+    st.write("🧠 Model: GPT-4.1")
 
     st.divider()
 
@@ -96,19 +74,19 @@ financial documents.
 # HEADER
 # =====================================================
 
-st.markdown("""
-<h1 style="
-text-align:center;
-font-size:52px;">
-💰 AI Financial Advisor
+st.markdown(
+    """
+<h1 style="text-align:center; font-size:52px;">
+ Research AI Assistant
 </h1>
 
-<h4 style="
-text-align:center;
-color:#CBD5E1;">
-Enterprise Retrieval-Augmented Financial Assistant
+<h4 style="text-align:center; color:#CBD5E1;">
+Research Retrieval-Augmented Generation Assistant
 </h4>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
+
 
 # =====================================================
 # WELCOME MESSAGE
@@ -121,7 +99,8 @@ if not st.session_state.welcome_shown:
         st.markdown(
             """
 ## 👋 Welcome!
-Ask me anything to get started.
+
+Ask me anything about your uploaded documents.
 """
         )
 
@@ -144,7 +123,7 @@ for message in st.session_state.messages:
 # =====================================================
 
 question = st.chat_input(
-    "Ask a question about your financial documents..."
+    "Ask a question..."
 )
 
 
@@ -154,7 +133,10 @@ question = st.chat_input(
 
 if question:
 
-    # Display user message
+    # -------------------------------
+    # Save & display user message
+    # -------------------------------
+
     st.session_state.messages.append(
         {
             "role": "user",
@@ -163,14 +145,27 @@ if question:
     )
 
     with st.chat_message("user"):
+
         st.markdown(question)
 
+    # -------------------------------
     # Assistant response
+    # -------------------------------
+
     with st.chat_message("assistant"):
 
         with st.spinner("Searching documents and generating answer..."):
 
-            answer, documents = ask(question)
+            result = graph.invoke(
+                {
+                    "question": question,
+                    "answer": "",
+                    "documents": [],
+                }
+            )
+
+            answer = result["answer"]
+            documents = result["documents"]
 
         with st.container(border=True):
 
@@ -181,7 +176,6 @@ if question:
             for doc in documents:
 
                 source = doc.metadata.get("source", "Unknown")
-
                 source = source.replace("\\", "/").split("/")[-1]
 
                 page = doc.metadata.get("page", 0) + 1
@@ -195,7 +189,10 @@ if question:
 
                 st.divider()
 
+    # -------------------------------
     # Save assistant message
+    # -------------------------------
+
     st.session_state.messages.append(
         {
             "role": "assistant",

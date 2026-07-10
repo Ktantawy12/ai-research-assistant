@@ -30,7 +30,7 @@ def ask(question: str):
 
     # Step 3: Build prompt
     prompt = f"""
-You are a helpful banking assistant.
+You are a helpful Research assistant.
 
 Answer ONLY using the information provided in the context below.
 
